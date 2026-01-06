@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = ""
 
     # Database
+    # Preferred in production (Render, Fly, etc.): single DATABASE_URL env
+    DATABASE_URL: str | None = None
+
+    # Optional granular settings (used only if DATABASE_URL is not set)
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "postgres"
@@ -23,6 +27,22 @@ class Settings(BaseSettings):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
+        """
+        Use DATABASE_URL if provided (e.g. from Render), otherwise build from individual components.
+        Expect DATABASE_URL like:
+          postgres://USER:PASSWORD@HOST:PORT/DBNAME
+        or:
+          postgresql://USER:PASSWORD@HOST:PORT/DBNAME
+        """
+        if self.DATABASE_URL:
+            # SQLAlchemy prefers the postgresql+psycopg2 scheme
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+            elif url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            return url
+
         return (
             f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
