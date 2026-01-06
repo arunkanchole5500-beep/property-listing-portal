@@ -21,5 +21,6 @@ COPY . .
 EXPOSE 8000
 
 # Run migrations and start server
-CMD uvicorn app.main:app --host 0.0.0.0 --port 8000
+# Alembic is configured via alembic.ini in this directory and will apply all pending migrations
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
 
