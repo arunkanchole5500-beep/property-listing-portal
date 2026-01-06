@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "E9TgRPGBv7O8QVzNHuX2dBfzMZtOnWwH"
     POSTGRES_DB: str = "property_portal_n5t0"
 
+
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         """
