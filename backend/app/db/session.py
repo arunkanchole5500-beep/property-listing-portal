@@ -6,7 +6,8 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
+# engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
+engine = create_engine("postgresql://arun:E9TgRPGBv7O8QVzNHuX2dBfzMZtOnWwH@dpg-d5eheua4d50c73c2mqag-a/property_portal_n5t0")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
