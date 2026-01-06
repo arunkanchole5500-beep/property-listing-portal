@@ -19,11 +19,11 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = None
 
     # Optional granular settings (used only if DATABASE_URL is not set)
-    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_SERVER: str = "dpg-d5eheua4d50c73c2mqag-a"
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "property_portal"
+    POSTGRES_USER: str = "arun"
+    POSTGRES_PASSWORD: str = "E9TgRPGBv7O8QVzNHuX2dBfzMZtOnWwH"
+    POSTGRES_DB: str = "property_portal_n5t0"
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
