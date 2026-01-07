@@ -1,5 +1,6 @@
-import subprocess
+import logging
 import os
+import subprocess
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -11,6 +12,7 @@ from app.api.routes import api_router
 
 
 settings = get_settings()
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -35,6 +37,7 @@ async def add_process_time_header(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     # Basic centralized error handler (can be expanded with logging, Sentry, etc.)
+    logger.exception("Unhandled exception in request", exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
@@ -50,11 +53,17 @@ def run_migrations_if_enabled():
     Safe to run repeatedly; Alembic is idempotent.
     """
     if not settings.RUN_MIGRATIONS_ON_STARTUP:
+        logger.info("RUN_MIGRATIONS_ON_STARTUP is False; skipping migrations.")
         return
 
     project_root = Path(__file__).resolve().parent.parent  # backend/
     alembic_ini = project_root / "alembic.ini"
 
+    if not alembic_ini.exists():
+        logger.warning("alembic.ini not found at %s; skipping migrations.", alembic_ini)
+        return
+
+    logger.info("Running Alembic migrations from %s", project_root)
     try:
         subprocess.run(
             ["alembic", "upgrade", "head"],
@@ -62,9 +71,9 @@ def run_migrations_if_enabled():
             cwd=project_root,
             env={**os.environ},
         )
-    except Exception:
-        # Avoid breaking startup if migrations fail; prefer to surface later in logs
-        pass
+        logger.info("Alembic migrations completed successfully.")
+    except Exception as exc:  # pragma: no cover - log-only path
+        logger.exception("Alembic migrations failed", exc_info=exc)
 
 
 @app.on_event("startup")
