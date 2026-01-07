@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: property_portal_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: property_portal_n5t0
+      POSTGRES_USER: arun
+      POSTGRES_PASSWORD: E9TgRPGBv7O8QVzNHuX2dBfzMZtOnWwH
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: property_portal_backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      # Preferred: single DATABASE_URL (config.py will normalize to postgresql+psycopg2)
+      DATABASE_URL: postgres://arun:E9TgRPGBv7O8QVzNHuX2dBfzMZtOnWwH@db:5432/property_portal_n5t0
+      FRONTEND_URL: http://localhost:3000
+      RUN_MIGRATIONS_ON_STARTUP: "true"
+      SECRET_KEY: "change-this-in-production"
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: property_portal_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # For local/dev use; in production on EC2, set this to your EC2 hostname instead of localhost
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:80"
+
+volumes:
+  db_data:
+
+

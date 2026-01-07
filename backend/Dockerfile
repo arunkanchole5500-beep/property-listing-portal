@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 # Note: When building, ensure requirements.txt is copied from parent directory
 # Or update fly.toml build context to parent directory
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy application code
 COPY . .

@@ -37,11 +37,11 @@ def create_user(
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-
+    user_type = user_in.user_type.value.lower()
     db_user = User(
         email=user_in.email,
         phone=user_in.phone,
-        user_type=UserType(user_in.user_type.value),
+        user_type=UserType(user_type),
         hashed_password=get_password_hash(user_in.password),
     )
     db.add(db_user)

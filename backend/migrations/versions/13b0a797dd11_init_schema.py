@@ -18,8 +18,23 @@ depends_on = None
 
 
 def upgrade():
-    user_type_enum = postgresql.ENUM("admin", "staff", name="user_type_enum")
-    user_type_enum.create(op.get_bind(), checkfirst=True)
+    # SQLAlchemy Enum for the existing PostgreSQL enum type.
+    # create_type=False tells SQLAlchemy not to emit CREATE TYPE for this.
+    user_type_enum = postgresql.ENUM(
+        "admin", "staff", name="user_type_enum", create_type=False
+    )
+
+    # Create enum type only if it does not exist (guards against repeated runs)
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_type_enum') THEN
+                CREATE TYPE user_type_enum AS ENUM ('admin', 'staff');
+            END IF;
+        END$$;
+        """
+    )
 
     op.create_table(
         "users",
