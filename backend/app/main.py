@@ -1,3 +1,7 @@
+import subprocess
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,3 +42,32 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+def run_migrations_if_enabled():
+    """
+    Run Alembic migrations once on startup if enabled.
+    Safe to run repeatedly; Alembic is idempotent.
+    """
+    if not settings.RUN_MIGRATIONS_ON_STARTUP:
+        return
+
+    project_root = Path(__file__).resolve().parent.parent  # backend/
+    alembic_ini = project_root / "alembic.ini"
+
+    try:
+        subprocess.run(
+            ["alembic", "upgrade", "head"],
+            check=True,
+            cwd=project_root,
+            env={**os.environ},
+        )
+    except Exception:
+        # Avoid breaking startup if migrations fail; prefer to surface later in logs
+        pass
+
+
+@app.on_event("startup")
+async def startup_event():
+    # Run migrations before handling traffic
+    run_migrations_if_enabled()

@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     # Frontend URL for CORS
     FRONTEND_URL: str = ""
 
+    # Auto-run migrations on startup (set to False to skip)
+    RUN_MIGRATIONS_ON_STARTUP: bool = True
+
     # Database
     # Preferred in production (Render, Fly, etc.): single DATABASE_URL env
     DATABASE_URL: str | None = None
